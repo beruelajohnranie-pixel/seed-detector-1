@@ -51,8 +51,7 @@ footer{font-size:.82rem;color:#647567;line-height:1.5;padding:8px 2px}
 This is a model prediction, not a guarantee. Results depend on your training images, lighting, distance, and camera quality. The camera runs in your browser; this page does not upload camera frames to a server.
 </footer>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core/dist/tf-core.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
 <script>
 const video = document.getElementById('video');
@@ -150,7 +149,7 @@ async function loop() {
       input = tf.tidy(() => {
         let image = tf.browser.fromPixels(video);
         image = tf.image.resizeBilinear(image, [height, width]);
-        image = tf.expandDims(image, 0);
+        image = image.expandDims(0);
         // Teachable Machine image models commonly expect float pixels normalized to [-1, 1].
         // Quantized uint8 models use the original 0–255 pixel values.
         if (model.inputs[0].dtype === 'float32') image = image.toFloat().div(127.5).sub(1);
