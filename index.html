@@ -7,18 +7,18 @@
 <title>Seed Detector</title>
 <style>
 :root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#14251b;background:#f3f7f2}
-*{box-sizing:border-box}body{margin:0;padding:18px 14px 32px}.wrap{max-width:680px;margin:auto}
-header{background:#14532d;color:white;padding:22px 20px;border-radius:20px;margin-bottom:16px}
-h1{font-size:1.7rem;margin:0 0 6px}header p{margin:0;color:#e1f3e5}
-.panel{background:white;border:1px solid #dce8dc;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 4px 16px #153c1710}
-.status{font-size:.93rem;color:#385744;margin:4px 0 12px}.status.error{color:#a12626}
-video{width:100%;max-height:55vh;aspect-ratio:4/3;object-fit:cover;background:#14251b;border-radius:14px;display:block}
-button{border:0;border-radius:12px;padding:13px 16px;font-size:1rem;font-weight:650;cursor:pointer}
+*{box-sizing:border-box}body{margin:0;padding:10px 10px 20px}.wrap{max-width:560px;margin:auto}
+header{background:#14532d;color:white;padding:15px 17px;border-radius:15px;margin-bottom:10px}
+h1{font-size:1.35rem;margin:0 0 3px}header p{margin:0;color:#e1f3e5}
+.panel{background:white;border:1px solid #dce8dc;border-radius:14px;padding:12px;margin:9px 0;box-shadow:0 3px 10px #153c170b}
+.status{font-size:.88rem;color:#385744;margin:4px 0 8px}.status.error{color:#a12626}
+video{width:100%;max-height:42vh;aspect-ratio:4/3;object-fit:cover;background:#14251b;border-radius:14px;display:block}
+button{border:0;border-radius:10px;padding:10px 12px;font-size:.92rem;font-weight:650;cursor:pointer}
 .primary{background:#166534;color:white}.secondary{background:#e7f1e8;color:#14532d}
-.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.controls button{flex:1;min-width:125px}
-.result{background:#f0f8f0;border-radius:14px;padding:15px;margin-top:14px}
-.small{font-size:.85rem;color:#53695a}.prediction{font-size:1.4rem;font-weight:750;margin:4px 0 10px;overflow-wrap:anywhere}
-.barrow{display:grid;grid-template-columns:minmax(105px,1fr) 2fr 48px;gap:8px;align-items:center;margin:10px 0;font-size:.9rem}
+.controls{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.controls button{flex:1;min-width:125px}
+.result{background:#f0f8f0;border-radius:11px;padding:11px;margin-top:9px}
+.small{font-size:.85rem;color:#53695a}.prediction{font-size:1.2rem;font-weight:750;margin:4px 0 10px;overflow-wrap:anywhere}
+.barrow{display:grid;grid-template-columns:minmax(95px,1fr) 2fr 44px;gap:7px;align-items:center;margin:8px 0;font-size:.9rem}
 .track{height:10px;background:#e2e9e2;border-radius:99px;overflow:hidden}.fill{height:100%;background:#299454;width:0}
 footer{font-size:.82rem;color:#647567;line-height:1.5;padding:8px 2px}
 .hidden{display:none!important}
@@ -34,7 +34,7 @@ footer{font-size:.82rem;color:#647567;line-height:1.5;padding:8px 2px}
 <button id="start" class="primary" disabled>Start camera</button>
 <button id="stop" class="secondary" disabled>Stop camera</button>
 </div>
-<p class="small">Place one seed type in the center, use bright light, and keep the camera steady.</p>
+<p class="small">Show one seed type clearly in bright light and keep the camera steady.</p>
 </section>
 <section class="panel">
 <h2 style="margin:0 0 6px;font-size:1.15rem">Prediction</h2>
@@ -150,7 +150,7 @@ async function loop() {
       input = tf.tidy(() => {
         let image = tf.browser.fromPixels(video);
         image = tf.image.resizeBilinear(image, [height, width]);
-        image = image.expandDims(0);
+        image = tf.expandDims(image, 0);
         // Teachable Machine image models commonly expect float pixels normalized to [-1, 1].
         // Quantized uint8 models use the original 0–255 pixel values.
         if (model.inputs[0].dtype === 'float32') image = image.toFloat().div(127.5).sub(1);
