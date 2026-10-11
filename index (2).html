@@ -51,9 +51,9 @@ footer{font-size:.82rem;color:#647567;line-height:1.5;padding:8px 2px}
 This is a model prediction, not a guarantee. Results depend on your training images, lighting, distance, and camera quality. The camera runs in your browser; this page does not upload camera frames to a server.
 </footer>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core@3.20.0/dist/tf-core.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu@3.20.0/dist/tf-backend-cpu.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/tf-tflite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core/dist/tf-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-cpu/dist/tf-backend-cpu.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
 <script>
 const video = document.getElementById('video');
 const statusEl = document.getElementById('status');
@@ -74,8 +74,8 @@ function cleanLabel(line) {
 async function loadModel() {
   try {
     setStatus('Loading your seed model…');
+    tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/');
     await tf.ready();
-    tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.9/dist/');
     model = await tflite.loadTFLiteModel('./model.tflite', {numThreads: 1});
     const response = await fetch('./labels.txt');
     if (!response.ok) throw new Error('Could not load labels.txt. Make sure it is beside index.html.');
