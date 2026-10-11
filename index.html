@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#14532d">
+<title>Seed Detector</title>
+<style>
+:root{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#14251b;background:#f3f7f2}
+*{box-sizing:border-box}body{margin:0;padding:18px 14px 32px}.wrap{max-width:680px;margin:auto}
+header{background:#14532d;color:white;padding:22px 20px;border-radius:20px;margin-bottom:16px}
+h1{font-size:1.7rem;margin:0 0 6px}header p{margin:0;color:#e1f3e5}
+.panel{background:white;border:1px solid #dce8dc;border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 4px 16px #153c1710}
+.status{font-size:.93rem;color:#385744;margin:4px 0 12px}.status.error{color:#a12626}
+video{width:100%;max-height:55vh;aspect-ratio:4/3;object-fit:cover;background:#14251b;border-radius:14px;display:block}
+button{border:0;border-radius:12px;padding:13px 16px;font-size:1rem;font-weight:650;cursor:pointer}
+.primary{background:#166534;color:white}.secondary{background:#e7f1e8;color:#14532d}
+.controls{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.controls button{flex:1;min-width:125px}
+.result{background:#f0f8f0;border-radius:14px;padding:15px;margin-top:14px}
+.small{font-size:.85rem;color:#53695a}.prediction{font-size:1.4rem;font-weight:750;margin:4px 0 10px;overflow-wrap:anywhere}
+.barrow{display:grid;grid-template-columns:minmax(105px,1fr) 2fr 48px;gap:8px;align-items:center;margin:10px 0;font-size:.9rem}
+.track{height:10px;background:#e2e9e2;border-radius:99px;overflow:hidden}.fill{height:100%;background:#299454;width:0}
+footer{font-size:.82rem;color:#647567;line-height:1.5;padding:8px 2px}
+.hidden{display:none!important}
+</style>
+</head>
+<body><main class="wrap">
+<header><h1>🌱 Seed Detector</h1><p>Camera-based seed classification using your Teachable Machine model</p></header>
+<section class="panel">
+<h2 style="margin:0 0 6px;font-size:1.15rem">Camera</h2>
+<div id="status" class="status">Loading model files… Please wait.</div>
+<video id="video" autoplay playsinline muted></video>
+<div class="controls">
+<button id="start" class="primary" disabled>Start camera</button>
+<button id="stop" class="secondary" disabled>Stop camera</button>
+</div>
+<p class="small">Place one seed type in the center, use bright light, and keep the camera steady.</p>
+</section>
+<section class="panel">
+<h2 style="margin:0 0 6px;font-size:1.15rem">Prediction</h2>
+<div class="result">
+<div class="small">Most likely class</div>
+<div id="topLabel" class="prediction">Waiting for camera…</div>
+<div id="topConfidence" class="small">Confidence: —</div>
+</div>
+<h3 style="font-size:1rem;margin:18px 0 8px">All classes</h3>
+<div id="allScores" class="small">Predictions will appear here after you start the camera.</div>
+</section>
+<footer>
+<strong>Classes in this model:</strong> Palay (Rice), Mais (Corn), Kamatis (Tomato), and Talong (Eggplant).<br>
+This is a model prediction, not a guarantee. Results depend on your training images, lighting, distance, and camera quality. The camera runs in your browser; this page does not upload camera frames to a server.
+</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.22.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/dist/tf-tflite.min.js"></script>
+<script>
+const video = document.getElementById('video');
+const statusEl = document.getElementById('status');
+const startBtn = document.getElementById('start');
+const stopBtn = document.getElementById('stop');
+const topLabel = document.getElementById('topLabel');
+const topConfidence = document.getElementById('topConfidence');
+const allScores = document.getElementById('allScores');
+let model = null, labels = [], stream = null, running = false, busy = false, raf = null;
+
+function setStatus(message, isError=false) {
+  statusEl.textContent = message;
+  statusEl.className = 'status' + (isError ? ' error' : '');
+}
+function cleanLabel(line) {
+  return line.trim().replace(/^\d+\s+/, '').replace(/^Class\s+\d+\s+/i, '').trim();
+}
+async function loadModel() {
+  try {
+    setStatus('Loading your seed model…');
+    await tf.ready();
+    tflite.setWasmPath('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite@0.0.1-alpha.10/dist/');
+    model = await tflite.loadTFLiteModel('./model.tflite', {numThreads: 1});
+    const response = await fetch('./labels.txt');
+    if (!response.ok) throw new Error('Could not load labels.txt. Make sure it is beside index.html.');
+    labels = (await response.text()).split(/\r?\n/).map(cleanLabel).filter(Boolean);
+    const shape = model.inputs[0].shape;
+    if (!shape || shape.length !== 4 || shape[3] !== 3) {
+      throw new Error('Unexpected model input shape: ' + JSON.stringify(shape));
+    }
+    if (labels.length !== model.outputs[0].shape.at(-1)) {
+      console.warn('Label count and output count may differ', labels.length, model.outputs[0].shape);
+    }
+    setStatus('Model ready. Tap “Start camera” and allow camera access.');
+    startBtn.disabled = false;
+  } catch (err) {
+    console.error(err);
+    setStatus('Could not load model: ' + err.message + ' Check that the app is hosted online using HTTPS and all files are together.', true);
+  }
+}
+async function startCamera() {
+  try {
+    if (!model) throw new Error('The model is not ready yet.');
+    stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: {facingMode: {ideal: 'environment'}, width: {ideal: 640}, height: {ideal: 480}}
+    });
+    video.srcObject = stream;
+    await video.play();
+    running = true;
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    setStatus('Camera is on. Looking at the seeds…');
+    loop();
+  } catch (err) {
+    setStatus('Camera could not start: ' + err.message + '. Allow camera permission in Chrome settings and use an HTTPS website.', true);
+  }
+}
+function stopCamera() {
+  running = false;
+  if (raf) cancelAnimationFrame(raf);
+  if (stream) stream.getTracks().forEach(track => track.stop());
+  stream = null;
+  video.srcObject = null;
+  startBtn.disabled = !model;
+  stopBtn.disabled = true;
+  setStatus(model ? 'Camera stopped. Tap “Start camera” to try again.' : 'Model not ready.');
+}
+function renderScores(scores) {
+  const entries = scores.map((score, i) => ({label: labels[i] || ('Class ' + (i+1)), score: Number(score)}))
+    .sort((a,b) => b.score - a.score);
+  if (!entries.length) return;
+  topLabel.textContent = entries[0].label;
+  topConfidence.textContent = 'Confidence: ' + (Math.max(0, Math.min(1, entries[0].score))*100).toFixed(1) + '%';
+  allScores.innerHTML = '';
+  entries.forEach(entry => {
+    const pct = Math.max(0, Math.min(100, entry.score * 100));
+    const row = document.createElement('div'); row.className = 'barrow';
+    const name = document.createElement('div'); name.textContent = entry.label;
+    const track = document.createElement('div'); track.className = 'track';
+    const fill = document.createElement('div'); fill.className = 'fill'; fill.style.width = pct + '%'; track.appendChild(fill);
+    const value = document.createElement('div'); value.textContent = pct.toFixed(1) + '%';
+    row.append(name, track, value); allScores.appendChild(row);
+  });
+}
+async function loop() {
+  if (!running) return;
+  if (!busy && video.readyState >= 2 && model) {
+    busy = true;
+    let input = null, output = null;
+    try {
+      const shape = model.inputs[0].shape;
+      const height = shape[1], width = shape[2];
+      input = tf.tidy(() => {
+        let image = tf.browser.fromPixels(video);
+        image = tf.image.resizeBilinear(image, [height, width]);
+        image = image.expandDims(0);
+        // Teachable Machine image models commonly expect float pixels normalized to [-1, 1].
+        // Quantized uint8 models use the original 0–255 pixel values.
+        if (model.inputs[0].dtype === 'float32') image = image.toFloat().div(127.5).sub(1);
+        return image;
+      });
+      output = model.predict(input);
+      const raw = Array.from(await output.data());
+      const scores = raw.length > labels.length && raw.length % labels.length === 0
+        ? raw.slice(raw.length - labels.length) : raw;
+      renderScores(scores);
+    } catch (err) {
+      console.error(err);
+      setStatus('Prediction error: ' + err.message, true);
+      running = false;
+      startBtn.disabled = false;
+      stopBtn.disabled = false;
+    } finally {
+      if (input) input.dispose();
+      if (output && output.dispose) output.dispose();
+      busy = false;
+    }
+  }
+  if (running) raf = requestAnimationFrame(loop);
+}
+startBtn.addEventListener('click', startCamera);
+stopBtn.addEventListener('click', stopCamera);
+window.addEventListener('pagehide', stopCamera);
+loadModel();
+</script>
+</body></html>
