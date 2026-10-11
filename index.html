@@ -150,14 +150,10 @@ async function loop() {
         let image = tf.browser.fromPixels(video);
         image = tf.image.resizeBilinear(image, [height, width]);
         image = image.expandDims(0);
-        // TFLite uint8 inputs are represented as int32 tensors in TensorFlow.js.
-        // Preserve camera pixel values (0–255) and convert to integer for this quantized model.
-        if (model.inputs[0].dtype === 'uint8' || model.inputs[0].dtype === 'int32') {
-          image = image.round().toInt();
-        } else {
-          // Float-input image models commonly expect pixels normalized to [-1, 1].
-          image = image.toFloat().div(127.5).sub(1);
-        }
+        // This specific uploaded model expects uint8 pixels.
+        // tfjs-tflite represents uint8 inputs as int32 tensors, so keep raw
+        // pixel values in the 0–255 range and NEVER normalize to float32.
+        image = image.round().toInt();
         return image;
       });
       output = model.predict(input);
