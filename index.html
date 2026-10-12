@@ -111,6 +111,7 @@ footer{padding:25px 8px 8px;line-height:1.7}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
 
 </style>
+<link rel="stylesheet" href="./professional.css">
 </head>
 <body>
 <main class="app">
@@ -194,7 +195,7 @@ function getHistory(){try{return JSON.parse(localStorage.getItem("binhiScanHisto
 function saveHistory(item){const h=getHistory();h.unshift(item);localStorage.setItem("binhiScanHistory",JSON.stringify(h.slice(0,100)));updateHistoryUI()}
 function updateHistoryUI(){
  const h=getHistory();$("historyCount").textContent=h.length;const root=$("historyList");root.innerHTML="";
- if(!h.length){root.innerHTML='<div class="empty">Wala pang saved scans.</div>';return}
+ if(!h.length){root.innerHTML='<div class="empty">No saved scans yet.</div>';return}
  h.forEach((item,i)=>{const row=document.createElement("div");row.className="listitem";const left=document.createElement("div");const b=document.createElement("b");b.textContent=item.label;const small=document.createElement("small");small.textContent=new Date(item.time).toLocaleString()+" • "+Number(item.confidence).toFixed(1)+"%";left.append(b,small);const btn=document.createElement("button");btn.className="secondary";btn.textContent="View guide";btn.addEventListener("click",()=>{showPage("guide");$("guideSelect").value=item.label;renderGuide(item.label)});row.append(left,btn);root.append(row)})
 }
 function showPage(name){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===name));window.scrollTo({top:0,behavior:"smooth"});if(name==="history")updateHistoryUI();if(name==="guide")renderGuide($("guideSelect").value)}

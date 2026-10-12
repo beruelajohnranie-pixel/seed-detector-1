@@ -1,35 +1,36 @@
-# BinhiScan — Professional UI Full System Prototype
+BinhiScan — Professional Responsive UI Package
 
-## Files
-- `index.html` — responsive mobile-friendly web application with refreshed professional UI
-- `model.tflite` — the provided Teachable Machine seed model
-- `labels.txt` — model class labels
-- `manifest.webmanifest` — installable web-app metadata
-- `sw.js` — caches the app shell and model files for later offline use
+Included files
+- index.html: application structure, interactions, and existing feature logic
+- professional.css: additional responsive styling, desktop sidebar navigation, improved focus states, and mobile layout refinements
+- model.tflite: supplied seed classification model
+- labels.txt: model class labels
+- manifest.webmanifest: installable web-app metadata
+- sw.js: service-worker cache configuration
 
-## Current supported AI classes
+Current model classes
 - Palay (Rice)
 - Mais (Corn)
 - Kamatis (Tomato)
 - Talong (Eggplant)
 
-The app cannot identify crop classes that are not present in the trained model. The current planting guides and seasons are general estimates and should be checked with local agricultural guidance.
+Design updates
+- Desktop layout with a persistent vertical navigation rail
+- Responsive mobile navigation and spacing
+- Refined cards, buttons, focus states, form controls, and content spacing
+- Scan page uses a two-column layout on wide screens
+- Existing features and the supplied AI model are retained
 
-## Deploy to GitHub Pages
-1. Download and extract this ZIP.
-2. Open your GitHub repository.
-3. Upload/replace `index.html`, `model.tflite`, `labels.txt`, `manifest.webmanifest`, and `sw.js` in the repository root.
-4. Commit the changes.
-5. Open your GitHub Pages site over HTTPS.
-6. On first use, connect to the internet so the TensorFlow.js scripts and WebAssembly runtime can load. The app shell/model can then be cached by the service worker. Offline AI availability still depends on whether the browser has cached the external TensorFlow libraries.
-7. On a phone, allow camera access. If the camera fails, choose an image from the phone instead.
+Run/deploy
+1. Extract all files into the same folder.
+2. For camera access and service-worker behavior, serve the folder over HTTPS or localhost rather than opening index.html directly.
+3. On first launch, internet access is required to load TensorFlow.js libraries from the CDN.
+4. Allow camera access or use the image upload option.
 
-## Important technical notes
-- Confidence values are converted to a probability distribution when the model output is not already a probability distribution. This is a display interpretation; verify the model's output/quantization details before using scores for formal accuracy evaluation.
-- The soil checklist is an observation-based estimate. A photo cannot reliably measure soil pH or nutrient levels.
-- The season checker uses the device's current month and the seasonal windows stored in the app; it does not use live weather.
-- Scan history is saved in local browser storage on the current device and is not synchronized across devices.
-- This is a student-project prototype. Test with multiple known seed samples before relying on results.
-
-## Design refresh
-This version uses a cleaner green agricultural theme, improved spacing and typography, refined cards and forms, accessible focus states, and a desktop sidebar / mobile navigation layout. Core app functions and the provided AI model files are retained.
+Important limitations
+- The model only recognizes the four classes listed above.
+- Confidence is a model score, not a guarantee of correctness.
+- Soil suitability is a checklist estimate and does not measure pH or nutrients.
+- Seasonal guidance is based on stored month ranges, not live weather.
+- Scan history is stored locally on the current browser/device.
+- Offline AI use depends on browser caching of external TensorFlow libraries; it is not guaranteed on every first/offline launch.
