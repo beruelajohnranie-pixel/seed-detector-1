@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#166534">
+<meta name="description" content="BinhiScan identifies supported seeds and provides planting information.">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>BinhiScan | Seed & Planting Guide</title>
+<style>
+:root{--green:#166534;--green2:#21864a;--ink:#17251b;--muted:#627266;--bg:#f3f7f2;--line:#dce7dc;--soft:#edf7ee;--white:#fff;--warn:#8a5a00;--bad:#a12626}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,input,select,textarea{font:inherit}button{border:0;border-radius:11px;padding:11px 13px;font-weight:700;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}
+.app{max-width:760px;margin:auto;padding:12px 12px calc(84px + env(safe-area-inset-bottom))}
+header{background:linear-gradient(135deg,#14532d,#21864a);color:white;padding:18px;border-radius:18px;margin-bottom:12px;box-shadow:0 7px 18px #14532d18}
+.brand{display:flex;gap:12px;align-items:center}.logo{width:48px;height:48px;display:grid;place-items:center;border-radius:14px;background:#ffffff20;font-size:28px}
+h1{font-size:1.4rem;margin:0}header p{margin:4px 0 0;color:#e0f2e3;font-size:.9rem}
+h2{font-size:1.1rem;margin:0 0 10px}h3{font-size:1rem;margin:14px 0 8px}
+.panel{background:var(--white);border:1px solid var(--line);border-radius:16px;padding:14px;margin:11px 0;box-shadow:0 3px 12px #173c1708}
+.muted,.hint{font-size:.88rem;color:var(--muted);line-height:1.5}.hint{margin:7px 0 0}
+.status{padding:9px 10px;border-radius:10px;background:#f0f5f0;color:#36523d;font-size:.88rem;margin:8px 0}.status.error{background:#fff0ef;color:var(--bad)}.status.warn{background:#fff6df;color:var(--warn)}
+nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:12px 0}
+.navbtn{background:#fff;color:#34503a;border:1px solid var(--line);padding:10px 5px;font-size:.82rem;min-height:62px}
+.navbtn span{display:block;font-size:1.2rem;margin-bottom:2px}.navbtn.active{background:#e4f3e6;border-color:#9ac8a2;color:var(--green)}
+.page{display:none}.page.active{display:block}
+.primary{background:var(--green);color:#fff}.secondary{background:#e7f2e8;color:var(--green)}.danger{background:#fff0ef;color:#9d2424}.row{display:flex;gap:8px;flex-wrap:wrap}.row>*{flex:1;min-width:120px}
+video,.preview{display:block;width:100%;max-height:45vh;aspect-ratio:4/3;object-fit:cover;background:#15251a;border-radius:13px}
+input[type=file]{width:100%;padding:10px;background:#f7faf7;border:1px dashed #b8cbbb;border-radius:11px}
+input[type=text],input[type=search],select,textarea{width:100%;padding:11px;border:1px solid #cddccd;border-radius:10px;background:white;color:var(--ink)}
+.result{background:var(--soft);padding:12px;border-radius:12px;margin-top:10px}.prediction{font-size:1.25rem;font-weight:800;margin:4px 0}.scoreline{display:grid;grid-template-columns:minmax(92px,1fr) 1.5fr 48px;gap:8px;align-items:center;margin:10px 0;font-size:.85rem}.track{height:9px;background:#e3ebe3;border-radius:50px;overflow:hidden}.fill{height:100%;background:var(--green2);width:0}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.mini{background:#f8fbf8;border:1px solid var(--line);padding:12px;border-radius:13px}.mini b{display:block;font-size:1.2rem;margin-bottom:3px}.pill{display:inline-block;padding:4px 8px;border-radius:30px;background:#e7f3e8;color:var(--green);font-size:.78rem;font-weight:700}
+.guideitem{padding:11px 0;border-bottom:1px solid #edf1ed}.guideitem:last-child{border-bottom:0}.guideitem b{display:block;margin-bottom:3px}
+.listitem{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:11px 0;border-bottom:1px solid #edf1ed}.listitem:last-child{border-bottom:0}.listitem small{display:block;color:var(--muted);margin-top:3px}
+.empty{padding:16px;text-align:center;color:var(--muted);background:#f8faf8;border-radius:12px}
+footer{text-align:center;color:var(--muted);font-size:.8rem;line-height:1.5;padding:15px 5px}
+.bottom{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:9px 12px calc(9px + env(safe-area-inset-bottom));text-align:center;color:var(--muted);font-size:.78rem}
+.hidden{display:none!important}.small{font-size:.83rem}.checkrow{display:flex;align-items:flex-start;gap:9px;margin:9px 0}.checkrow input{margin-top:5px}
+@media(min-width:650px){nav{grid-template-columns:repeat(6,minmax(0,1fr))}.app{padding-top:22px}.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ===== BinhiScan Professional UI Refresh ===== */
+:root{
+ --green:#17663a;--green2:#25844c;--ink:#17251d;--muted:#69786e;
+ --bg:#f4f7f3;--line:#e1e9e1;--soft:#edf7ef;--white:#fff;
+ --shadow:0 8px 26px rgba(22,58,31,.055);--radius:18px;
+}
+body{background:linear-gradient(180deg,#edf5ee 0,#f7f9f6 280px,#f5f7f4 100%);color:var(--ink);letter-spacing:-.01em}
+.app{max-width:1240px;margin:0 auto;padding:22px 24px 36px}
+header{position:relative;overflow:hidden;border-radius:24px;padding:25px 28px;margin-bottom:20px;background:linear-gradient(118deg,#103e26 0%,#17663a 56%,#2d8c51 100%);box-shadow:0 16px 38px rgba(20,83,45,.17)}
+header:after{content:"";position:absolute;width:240px;height:240px;border:1px solid #ffffff22;border-radius:50%;right:-55px;top:-125px;box-shadow:0 0 0 28px #ffffff08,0 0 0 58px #ffffff06;pointer-events:none}
+.brand{position:relative;z-index:1;gap:15px}.logo{width:58px;height:58px;border-radius:18px;background:#ffffff18;border:1px solid #ffffff2c;box-shadow:inset 0 1px 0 #ffffff24;font-size:30px}
+h1{font-size:clamp(1.45rem,2.4vw,1.9rem);letter-spacing:-.045em;font-weight:800}
+header p{max-width:680px;color:#d8eee0;font-size:.93rem;line-height:1.55}
+nav{display:flex;flex-wrap:wrap;gap:7px;padding:7px;background:#e9f0e9;border:1px solid #e0e9df;border-radius:15px;margin:0 0 20px}
+.navbtn{flex:1 1 105px;min-height:53px;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 12px;background:transparent;border:1px solid transparent;border-radius:11px;color:#536457;font-size:.88rem;transition:background .15s,border-color .15s,transform .15s}
+.navbtn span{display:inline-block;font-size:1.12rem;margin:0}.navbtn:hover{background:#fff;border-color:#e0e9df;transform:translateY(-1px)}
+.navbtn.active{background:#fff;color:var(--green);border-color:#d7e6d8;box-shadow:0 3px 9px #173c170a}
+.page.active{animation:fadeIn .18s ease-out}
+@keyframes fadeIn{from{opacity:.6;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}
+.panel{padding:22px;margin:0 0 16px;border:1px solid #e2eae1;border-radius:var(--radius);box-shadow:var(--shadow);background:rgba(255,255,255,.96)}
+h2{font-size:1.15rem;font-weight:780;letter-spacing:-.025em;margin:0 0 13px}
+h3{font-size:.98rem;font-weight:750;letter-spacing:-.01em;margin:20px 0 10px}
+p{line-height:1.6}
+.muted,.hint{color:var(--muted);line-height:1.6}
+.status{padding:12px 14px;border:1px solid #dfeae0;border-radius:12px;background:#f5f9f5;color:#315b3b}
+.status.error{border-color:#f0d4d0}.status.warn{border-color:#f1dfb2}
+button{border-radius:11px;padding:12px 16px;font-size:.9rem;transition:transform .15s,box-shadow .15s,background .15s}
+button:not(:disabled):hover{transform:translateY(-1px)}
+button:not(:disabled):active{transform:translateY(0)}
+.primary{background:linear-gradient(135deg,#17663a,#25844c);box-shadow:0 5px 12px #17663a20;color:#fff}
+.primary:hover{box-shadow:0 7px 16px #17663a2d}
+.secondary{background:#edf6ee;color:#17663a;border:1px solid #dcebdd}
+.danger{background:#fff3f1;color:#9d3030;border:1px solid #f3d8d4}
+input[type=file]{background:#f9fbf9;border:1px dashed #b9cdbb;border-radius:12px;padding:13px}
+input[type=text],input[type=search],select,textarea{padding:12px 13px;border:1px solid #d6e1d6;border-radius:11px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{border-color:#63a777;box-shadow:0 0 0 3px #25844c16}
+video,.preview{border-radius:15px;border:1px solid #dfe8df;box-shadow:0 5px 16px #173c170c}
+.result{background:linear-gradient(135deg,#eff8f0,#eaf5ec);border:1px solid #dcebdd;border-radius:15px;padding:16px}
+.prediction{font-size:1.35rem;letter-spacing:-.035em;color:#173d25}
+.scoreline{grid-template-columns:minmax(105px,1fr) 1.7fr 54px;gap:10px;margin:13px 0;font-size:.86rem}
+.track{height:10px;background:#dfe9df}.fill{background:linear-gradient(90deg,#26884c,#41a765);border-radius:30px}
+.cards{gap:12px}.mini{padding:17px;border:1px solid #e2eae1;border-radius:15px;background:linear-gradient(145deg,#fff,#f9fcf9);box-shadow:0 4px 12px #173c1706}
+.mini b{font-size:1.45rem;color:#1a6b3d;letter-spacing:-.04em}
+.guideitem{padding:13px 0;border-bottom:1px solid #edf1ed}.guideitem b{color:#233b2a}
+.pill{padding:5px 10px;background:#e9f5eb;border:1px solid #d8eadb;color:#17663a}
+.listitem{padding:14px 0;align-items:center}.listitem small{line-height:1.5}
+.empty{border:1px dashed #d8e3d8;background:#f8fbf8;border-radius:14px}
+footer{padding:25px 8px 8px;line-height:1.7}
+.bottom{display:none}
+@media(min-width:900px){
+ .app{padding:24px 32px 30px}
+ header{margin-left:228px;min-height:112px;display:flex;align-items:center}
+ nav{position:fixed;z-index:10;top:24px;left:max(24px,calc((100vw - 1240px)/2 + 32px));width:200px;display:flex;flex-direction:column;align-items:stretch;padding:10px;margin:0;background:#fff;border:1px solid #e1e9e1;border-radius:17px;box-shadow:var(--shadow)}
+ .navbtn{flex:0 0 auto;justify-content:flex-start;text-align:left;padding:13px 14px;min-height:47px}
+ .navbtn span{width:25px;text-align:center}
+ .page{margin-left:228px}
+ footer{margin-left:228px}
+ .cards{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .app{padding:10px 10px 25px}
+ header{padding:18px;border-radius:18px;margin-bottom:12px}
+ .logo{width:48px;height:48px;border-radius:15px}
+ nav{gap:5px;padding:5px;margin-bottom:12px;border-radius:13px}
+ .navbtn{flex:1 1 28%;min-height:57px;display:flex;flex-direction:column;gap:2px;padding:7px 4px;font-size:.76rem}
+ .navbtn span{font-size:1.15rem}
+ .panel{padding:16px;margin-bottom:12px;border-radius:15px}
+ .cards{gap:8px}.mini{padding:12px}.mini b{font-size:1.2rem}
+ .row>*{min-width:100px}
+ .scoreline{grid-template-columns:minmax(86px,1fr) 1.1fr 48px;gap:6px;font-size:.78rem}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+</style>
+</head>
+<body>
+<main class="app">
+<header><div class="brand"><div class="logo">🌱</div><div><h1>BinhiScan</h1><p>AI-Based Seed Identification and Intelligent Planting Information System</p></div></div></header>
+
+<nav aria-label="Main navigation">
+<button class="navbtn active" data-page="home"><span>🏡</span>Home</button>
+<button class="navbtn" data-page="scan"><span>📷</span>Scan Seed</button>
+<button class="navbtn" data-page="guide"><span>🌿</span>Planting Guide</button>
+<button class="navbtn" data-page="soil"><span>🪴</span>Soil Check</button>
+<button class="navbtn" data-page="season"><span>☀️</span>Season</button>
+<button class="navbtn" data-page="history"><span>🕘</span>History</button>
+</nav>
+
+<section class="page active" id="page-home">
+<div class="panel"><h2>Welcome to BinhiScan</h2><p class="muted">Identify supported seeds, view planting instructions, and keep your scan results in one place.</p><div class="row"><button class="primary" data-goto="scan">📷 Scan a seed</button><button class="secondary" data-goto="guide">View planting guides</button></div></div>
+<div class="cards">
+<div class="mini"><b id="historyCount">0</b><span class="muted">Saved scans</span></div>
+<div class="mini"><b>4</b><span class="muted">Current model classes</span></div>
+<div class="mini"><b id="offlineState">Checking…</b><span class="muted">Offline support</span></div>
+</div>
+<div class="panel"><h2>Supported seeds</h2><div id="supportedSeeds" class="muted">Palay (Rice), Mais (Corn), Kamatis (Tomato), Talong (Eggplant)</div><p class="hint">The current AI model only recognizes these four trained classes. Other seeds may be misidentified.</p></div>
+<div class="panel"><h2>How to get a better scan</h2><div class="guideitem"><b>1. Use good lighting</b><span class="muted">Avoid dark areas, strong shadows, and blurry images.</span></div><div class="guideitem"><b>2. Show one kind of seed</b><span class="muted">Keep the seed centered and fill the camera view clearly.</span></div><div class="guideitem"><b>3. Check the confidence</b><span class="muted">A score is a model estimate, not a guarantee that the result is correct.</span></div></div>
+</section>
+
+<section class="page" id="page-scan">
+<div class="panel"><h2>Scan or upload a seed photo</h2><div id="modelStatus" class="status">Loading AI model files…</div>
+<video id="video" autoplay playsinline muted class="hidden"></video>
+<img id="preview" class="preview hidden" alt="Selected seed photo preview">
+<div class="row" style="margin:9px 0"><button id="startCamera" class="primary" disabled>Start camera</button><button id="stopCamera" class="secondary" disabled>Stop camera</button></div>
+<label class="muted" for="photoInput">Or choose a photo from your phone</label><input id="photoInput" type="file" accept="image/*" capture="environment">
+<div class="row" style="margin-top:9px"><button id="predictPhoto" class="primary" disabled>Identify photo</button><button id="capturePredict" class="secondary" disabled>Scan camera now</button></div>
+<p class="hint">Camera access requires HTTPS and your permission. The photo is processed in your browser and is not uploaded by this app.</p></div>
+<div class="panel"><h2>Prediction</h2><div class="result"><div class="muted">Most likely class</div><div id="topLabel" class="prediction">Waiting for a scan…</div><div id="topConfidence" class="muted">Confidence: —</div><div id="confidenceNote" class="hint">Scan a seed to see its result.</div></div><h3>All classes</h3><div id="allScores" class="muted">No prediction yet.</div><div id="resultGuide" class="hidden"></div></div>
+</section>
+
+<section class="page" id="page-guide">
+<div class="panel"><h2>Planting Guide</h2><p class="muted">Choose a seed to view its planting information. These are general estimates; follow local agricultural advice when available.</p><label for="guideSelect" class="muted">Select seed</label><select id="guideSelect"></select><div id="guideDetails"></div></div>
+</section>
+
+<section class="page" id="page-soil">
+<div class="panel"><h2>Soil & Planting Area Check</h2><p class="muted">This tool gives a basic visual checklist and user-reported estimate. A photo alone cannot reliably measure soil pH, nutrients, or exact fertility.</p>
+<label class="muted" for="soilType">Soil appearance / type</label><select id="soilType"><option value="">Choose an observation</option><option value="loam">Dark, crumbly soil (loam-like)</option><option value="clay">Sticky, compact, clay-like soil</option><option value="sand">Loose, gritty, sandy soil</option><option value="waterlogged">Very wet or waterlogged soil</option><option value="unknown">Cannot tell / mixed soil</option></select>
+<label class="muted" for="drainage" style="display:block;margin-top:10px">After watering, how does water behave?</label><select id="drainage"><option value="">Choose drainage</option><option value="good">Soaks in and drains without standing water</option><option value="slow">Stays wet for a long time</option><option value="fast">Drains very quickly</option><option value="unknown">Not sure</option></select>
+<div class="checkrow"><input type="checkbox" id="sunlight"><label for="sunlight">The area receives several hours of sunlight</label></div>
+<div class="checkrow"><input type="checkbox" id="space"><label for="space">The area has enough space for the crop</label></div>
+<div class="checkrow"><input type="checkbox" id="water"><label for="water">A reliable water source is available</label></div>
+<button id="checkSoil" class="primary" style="width:100%;margin-top:8px">Check planting area</button><div id="soilResult" class="result hidden" aria-live="polite"></div>
+<p class="hint">For a more reliable decision, check soil pH and nutrients with a soil test or local agriculture office.</p></div>
+</section>
+
+<section class="page" id="page-season">
+<div class="panel"><h2>Planting Season Check</h2><p class="muted">This checks the current month against the simple seasonal guidance stored in this app. It does not use live weather forecasts.</p><div class="result"><div class="muted">Today's date on this device</div><div class="prediction" id="todayDate">—</div></div>
+<label class="muted" for="seasonSelect" style="display:block;margin-top:12px">Choose seed</label><select id="seasonSelect"></select><button id="checkSeason" class="primary" style="width:100%;margin-top:9px">Check season</button><div id="seasonResult" class="result hidden"></div>
+<p class="hint">Actual best planting time depends on variety, local climate, rainfall, and farm conditions. Confirm with local agricultural guidance.</p></div>
+</section>
+
+<section class="page" id="page-history">
+<div class="panel"><h2>Scan History</h2><p class="muted">Scan results are stored on this device only. Clearing browser data may remove them.</p><div class="row"><button id="exportHistory" class="secondary">Export history</button><button id="clearHistory" class="danger">Clear history</button></div><div id="historyList" style="margin-top:10px"></div></div>
+</section>
+<footer>BinhiScan • Student project prototype<br>AI predictions and planting suitability are estimates, not professional agricultural or laboratory advice.</footer>
+</main>
+<div class="bottom">BinhiScan • Seed identification & planting information</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/tf-tflite.min.js"></script>
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const DB = {
+ "Palay (Rice)":{tagalog:"Palay",english:"Rice",depth:"about 1–2 cm for direct seeding (method varies)",water:"Keep the soil moist; avoid leaving seeds submerged unless using a suitable rice-growing method.",sun:"A sunny growing area is generally needed.",sprout:"about 5–14 days",harvest:"about 3–4 months, depending on variety",months:[5,6,7,8,9,10,11],notes:"Rice planting schedules vary by location and irrigation. Follow local DA/LGU advice."},
+ "Mais (Corn)":{tagalog:"Mais",english:"Corn",depth:"about 2.5–5 cm",water:"Water after planting and keep moisture steady, especially during germination and flowering.",sun:"Full sun is preferred.",sprout:"about 5–10 days",harvest:"about 2.5–4 months, depending on variety",months:[5,6,7,8,9,10,11],notes:"Avoid waterlogged soil. Planting dates vary by season and local conditions."},
+ "Kamatis (Tomato)":{tagalog:"Kamatis",english:"Tomato",depth:"about 0.5 cm when sowing seeds in a nursery tray",water:"Keep seed-starting mix moist but not soaked; transplant carefully after seedlings are established.",sun:"A sunny area is preferred.",sprout:"about 5–10 days",harvest:"about 2.5–4 months from sowing, depending on variety",months:[10,11,12,1,2,3],notes:"Heavy rain can increase disease risk. Provide drainage and support when needed."},
+ "Talong (Eggplant)":{tagalog:"Talong",english:"Eggplant",depth:"about 0.5–1 cm in a nursery tray",water:"Keep the soil evenly moist but not waterlogged.",sun:"Full sun and warm conditions are generally preferred.",sprout:"about 7–14 days",harvest:"about 3–5 months from sowing, depending on variety",months:[10,11,12,1,2,3,4],notes:"Usually started in a nursery before transplanting. Local conditions affect timing."}
+};
+const MONTHS=["January","February","March","April","May","June","July","August","September","October","November","December"];
+let model=null,labels=[],stream=null,running=false,busy=false,raf=null,selectedFile=null,lastPrediction=null;
+function setStatus(msg,error=false){$("modelStatus").textContent=msg;$("modelStatus").className="status"+(error?" error":"");}
+function cleanLabel(line){return line.trim().replace(/^\d+\s+/,"").replace(/^Class\s+\d+\s+/i,"").trim();}
+function getHistory(){try{return JSON.parse(localStorage.getItem("binhiScanHistory")||"[]")}catch{return []}}
+function saveHistory(item){const h=getHistory();h.unshift(item);localStorage.setItem("binhiScanHistory",JSON.stringify(h.slice(0,100)));updateHistoryUI()}
+function updateHistoryUI(){
+ const h=getHistory();$("historyCount").textContent=h.length;const root=$("historyList");root.innerHTML="";
+ if(!h.length){root.innerHTML='<div class="empty">Wala pang saved scans.</div>';return}
+ h.forEach((item,i)=>{const row=document.createElement("div");row.className="listitem";const left=document.createElement("div");const b=document.createElement("b");b.textContent=item.label;const small=document.createElement("small");small.textContent=new Date(item.time).toLocaleString()+" • "+Number(item.confidence).toFixed(1)+"%";left.append(b,small);const btn=document.createElement("button");btn.className="secondary";btn.textContent="View guide";btn.addEventListener("click",()=>{showPage("guide");$("guideSelect").value=item.label;renderGuide(item.label)});row.append(left,btn);root.append(row)})
+}
+function showPage(name){document.querySelectorAll(".page").forEach(p=>p.classList.toggle("active",p.id==="page-"+name));document.querySelectorAll(".navbtn").forEach(b=>b.classList.toggle("active",b.dataset.page===name));window.scrollTo({top:0,behavior:"smooth"});if(name==="history")updateHistoryUI();if(name==="guide")renderGuide($("guideSelect").value)}
+document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.page)));
+document.querySelectorAll("[data-goto]").forEach(b=>b.addEventListener("click",()=>showPage(b.dataset.goto)));
+function fillSelects(){for(const id of ["guideSelect","seasonSelect"]){const sel=$(id);sel.innerHTML="";Object.keys(DB).forEach(k=>{const o=document.createElement("option");o.value=k;o.textContent=k;sel.append(o)})}}
+function renderGuide(key){
+ const d=DB[key];if(!d)return;const root=$("guideDetails");root.innerHTML="";
+ const add=(title,text)=>{const el=document.createElement("div");el.className="guideitem";const b=document.createElement("b");b.textContent=title;const p=document.createElement("div");p.className="muted";p.textContent=text;el.append(b,p);root.append(el)};
+ const title=document.createElement("h3");title.textContent=d.tagalog+" / "+d.english;root.append(title);
+ add("Planting depth",d.depth);add("Watering",d.water);add("Sunlight",d.sun);add("Estimated germination",d.sprout);add("Estimated harvest",d.harvest);add("Season notes",d.notes);
+}
+$("guideSelect").addEventListener("change",()=>renderGuide($("guideSelect").value));
+function normalizeScores(raw){
+ let vals=Array.from(raw).map(Number);
+ if(!vals.length||vals.some(v=>!Number.isFinite(v)))throw new Error("Model returned invalid output.");
+ // If values already look like probabilities, preserve them. Otherwise convert logits/scores into a probability distribution.
+ const sum=vals.reduce((a,b)=>a+b,0);
+ const validProb=vals.every(v=>v>=0&&v<=1.0001)&&sum>0.85&&sum<1.15;
+ if(validProb)return vals.map(v=>v/sum);
+ const max=Math.max(...vals);const exps=vals.map(v=>Math.exp(Math.max(-80,Math.min(80,v-max))));const total=exps.reduce((a,b)=>a+b,0);
+ if(!Number.isFinite(total)||total<=0)throw new Error("Cannot interpret model output scores.");
+ return exps.map(v=>v/total);
+}
+function renderScores(raw,record=true){
+ const scores=normalizeScores(raw);
+ const entries=scores.map((score,i)=>({label:labels[i]||("Class "+(i+1)),score})).sort((a,b)=>b.score-a.score);
+ if(!entries.length)return;
+ const top=entries[0];$("topLabel").textContent=top.label;$("topConfidence").textContent="Confidence: "+(top.score*100).toFixed(1)+"%";
+ $("confidenceNote").textContent=top.score<.55?"Low confidence: try another clear photo in better light.":top.score<.8?"Moderate confidence: compare the seed carefully before relying on the result.":"Model confidence is high, but it is not a guarantee of correctness.";
+ const root=$("allScores");root.innerHTML="";
+ entries.forEach(e=>{const row=document.createElement("div");row.className="scoreline";const name=document.createElement("div");name.textContent=e.label;const track=document.createElement("div");track.className="track";const fill=document.createElement("div");fill.className="fill";fill.style.width=(e.score*100)+"%";track.append(fill);const value=document.createElement("div");value.textContent=(e.score*100).toFixed(1)+"%";row.append(name,track,value);root.append(row)});
+ lastPrediction={label:top.label,confidence:top.score*100,scores:entries};
+ const guide=$("resultGuide");guide.classList.remove("hidden");guide.innerHTML="";const btn=document.createElement("button");btn.className="secondary";btn.textContent="Open planting guide";btn.addEventListener("click",()=>{if(DB[top.label]){$("guideSelect").value=top.label;renderGuide(top.label);showPage("guide")}});guide.append(btn);
+ if(record)saveHistory({label:top.label,confidence:top.score*100,time:new Date().toISOString()});
+}
+async function loadModel(){
+ try{
+  setStatus("Loading AI model… first load may need internet.");
+  if(!window.tf||!window.tflite)throw new Error("TensorFlow libraries did not load. Connect to internet and reload.");
+  tflite.setWasmPath("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-tflite/dist/");
+  await tf.ready();model=await tflite.loadTFLiteModel("./model.tflite",{numThreads:1});
+  const r=await fetch("./labels.txt");if(!r.ok)throw new Error("labels.txt not found beside index.html.");labels=(await r.text()).split(/\r?\n/).map(cleanLabel).filter(Boolean);
+  const shape=model.inputs[0].shape;if(!shape||shape.length!==4)throw new Error("Unexpected model input shape: "+JSON.stringify(shape));
+  if(labels.length!==model.outputs[0].shape[model.outputs[0].shape.length-1])console.warn("Model output size and labels differ.");
+  setStatus("AI model ready. Start camera or choose a photo.");$("startCamera").disabled=false;$("predictPhoto").disabled=false;$("capturePredict").disabled=false;
+ }catch(e){console.error(e);setStatus("Could not load model: "+e.message,true)}
+}
+async function startCamera(){
+ try{if(!model)throw new Error("Wait until the AI model is ready.");if(!navigator.mediaDevices?.getUserMedia)throw new Error("Camera is not supported in this browser.");
+  stream=await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:"environment"},width:{ideal:640},height:{ideal:480}}});
+  $("video").srcObject=stream;$("video").classList.remove("hidden");$("preview").classList.add("hidden");await $("video").play();running=true;$("startCamera").disabled=true;$("stopCamera").disabled=false;setStatus("Camera is on. Keep one seed centered.");loop();
+ }catch(e){setStatus("Camera could not start: "+e.message+". Use the HTTPS website and allow camera permission.",true)}
+}
+function stopCamera(){running=false;if(raf)cancelAnimationFrame(raf);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;$("video").srcObject=null;$("video").classList.add("hidden");$("stopCamera").disabled=true;$("startCamera").disabled=!model}
+async function predictImage(image){
+ if(!model)throw new Error("AI model is not ready.");const shape=model.inputs[0].shape;
+ let input=null,output=null;
+ try{input=tf.tidy(()=>{let x=tf.browser.fromPixels(image);x=tf.image.resizeBilinear(x,[shape[1],shape[2]]);x=x.expandDims(0);return x.round().toInt()});
+ output=model.predict(input);let raw=Array.from(await output.data());
+ const n=labels.length;if(raw.length>n&&raw.length%n===0)raw=raw.slice(raw.length-n);
+ renderScores(raw,true);return raw;
+ }finally{if(input)input.dispose();if(output?.dispose)output.dispose()}
+}
+$("startCamera").addEventListener("click",startCamera);$("stopCamera").addEventListener("click",stopCamera);
+$("photoInput").addEventListener("change",e=>{selectedFile=e.target.files?.[0]||null;if(!selectedFile)return;const url=URL.createObjectURL(selectedFile);$("preview").src=url;$("preview").classList.remove("hidden");$("video").classList.add("hidden");stopCamera();});
+$("predictPhoto").addEventListener("click",async()=>{if(!selectedFile){setStatus("Choose a photo first.",true);return}try{setStatus("Identifying photo…");const img=new Image();img.src=URL.createObjectURL(selectedFile);await img.decode();await predictImage(img);setStatus("Prediction complete.");}catch(e){console.error(e);setStatus("Prediction error: "+e.message,true)}});
+$("capturePredict").addEventListener("click",async()=>{try{if(!$("video").videoWidth)throw new Error("Start the camera first.");setStatus("Scanning camera image…");await predictImage($("video"));setStatus("Prediction complete.");}catch(e){setStatus("Prediction error: "+e.message,true)}});
+async function loop(){if(!running)return;if(!busy&&$("video").readyState>=2&&model){busy=true;try{await predictImage($("video"),false);}catch(e){console.error(e);setStatus("Prediction error: "+e.message,true);stopCamera()}finally{busy=false}}if(running)raf=requestAnimationFrame(loop)}
+$("checkSoil").addEventListener("click",()=>{
+ const type=$("soilType").value,drain=$("drainage").value;if(!type||!drain){$("soilResult").classList.remove("hidden");$("soilResult").innerHTML="<b>Please answer both soil questions.</b>";return}
+ let points=0,notes=[];if(type==="loam"){points+=2;notes.push("Loam-like soil often supports many crops if it has enough organic matter.")}else if(type==="clay"){notes.push("Clay-like soil may compact and drain slowly; improve structure with suitable organic matter and avoid working it when very wet.")}else if(type==="sand"){notes.push("Sandy soil may drain quickly and need more frequent watering and organic matter.")}else if(type==="waterlogged"){points-=2;notes.push("Waterlogging can damage many vegetable crops; improve drainage before planting.")}else notes.push("Soil type is unclear; observe drainage or seek local advice.");
+ if(drain==="good")points+=2;else if(drain==="slow"){points-=1;notes.push("Standing water suggests drainage may need improvement.")}else if(drain==="fast"){notes.push("Fast drainage can mean the soil dries quickly; plan regular watering.")}else notes.push("Check drainage after a normal watering.");
+ for(const [id,msg] of [["sunlight","Check that the selected crop receives its required sunlight."],["space","Make sure the crop has room to grow."],["water","Make sure water is available throughout the growing period."]]){if($(id).checked)points++;else notes.push(msg)}
+ let verdict=points>=5?"Looks promising based on your observations":points>=2?"May be suitable after checking the suggested improvements":"More checks or improvements are recommended";
+ const root=$("soilResult");root.classList.remove("hidden");root.innerHTML="";const b=document.createElement("b");b.textContent=verdict;root.append(b);notes.forEach(n=>{const p=document.createElement("p");p.className="muted";p.textContent="• "+n;root.append(p)});const p=document.createElement("p");p.className="hint";p.textContent="This is a checklist estimate, not a laboratory soil analysis.";root.append(p);
+});
+function seasonText(key){const month=new Date().getMonth()+1;const d=DB[key];const root=$("seasonResult");root.classList.remove("hidden");root.innerHTML="";const b=document.createElement("b");b.textContent=d.months.includes(month)?"The current month is within the app's suggested seasonal window.":"The current month is outside the app's suggested seasonal window.";root.append(b);const p=document.createElement("p");p.className="muted";p.textContent="Month: "+MONTHS[month-1]+". "+d.notes;root.append(p);const q=document.createElement("p");q.className="hint";q.textContent="This is stored guidance only; it does not check live weather or local farm conditions.";root.append(q)}
+$("checkSeason").addEventListener("click",()=>seasonText($("seasonSelect").value));
+$("exportHistory").addEventListener("click",()=>{const blob=new Blob([JSON.stringify(getHistory(),null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="binhiscan-history.json";a.click();URL.revokeObjectURL(url)});
+$("clearHistory").addEventListener("click",()=>{if(confirm("Delete all saved scan history on this device?")){localStorage.removeItem("binhiScanHistory");updateHistoryUI()}});
+window.addEventListener("pagehide",stopCamera);
+fillSelects();renderGuide(Object.keys(DB)[0]);updateHistoryUI();$("todayDate").textContent=new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});loadModel();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").then(()=>{$("offlineState").textContent="Ready"}).catch(()=>{$("offlineState").textContent="Limited"}))}else $("offlineState").textContent="Limited";
+</script>
+</body>
+</html>
