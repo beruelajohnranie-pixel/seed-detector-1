@@ -1,4 +1,0 @@
-0 Class 1 Palay (Rice) 
-1 Class 2 Mais (Corn)
-2 Class 3 Kamatis (Tomato)
-3 Class 4 Talong (Eggplant)
